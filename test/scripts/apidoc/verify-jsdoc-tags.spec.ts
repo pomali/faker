@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath, URL } from 'node:url';
 import validator from 'validator';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { initMarkdownRenderer } from '../../../scripts/apidoc/markdown';
@@ -15,6 +16,8 @@ import {
   MISSING_DESCRIPTION,
 } from '../../../scripts/apidoc/typedoc';
 import { loadProjectModules } from './utils';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 // This test ensures, that every method
 // - has working examples

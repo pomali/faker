@@ -1,6 +1,9 @@
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
+import { fileURLToPath, URL } from 'node:url';
 import type { Method } from '../../docs/.vitepress/components/api-docs/method';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 // Types
 

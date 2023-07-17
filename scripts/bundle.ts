@@ -1,5 +1,4 @@
 import { buildSync } from 'esbuild';
-import { globSync } from 'glob';
 import { allLocales } from '../src';
 
 console.log('Building dist for node (cjs)...');
@@ -7,14 +6,12 @@ console.log('Building dist for node (cjs)...');
 const target = ['ES2019', 'node14.17'];
 
 buildSync({
-  entryPoints: globSync('./src/**/*.ts'),
-  // We can use the following entry points when esbuild supports cjs+splitting
-  // entryPoints: [
-  //   './src/index.ts',
-  //   ...Object.keys(locales).map((locale) => `./src/locale/${locale}.ts`),
-  // ],
+  entryPoints: [
+    './src/index.ts',
+    ...Object.keys(allLocales).map((locale) => `./src/locale/${locale}.ts`),
+  ],
   outdir: './dist/cjs',
-  bundle: false, // Creates 390MiB bundle ...
+  bundle: true, // Creates 49MiB bundle ...
   sourcemap: false,
   minify: true,
   // splitting: true, // Doesn't work with cjs
@@ -36,5 +33,4 @@ buildSync({
   splitting: true,
   format: 'esm',
   target,
-  outExtension: { '.js': '.mjs' },
 });

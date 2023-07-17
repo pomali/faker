@@ -20,10 +20,13 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath, URL } from 'node:url';
 import type { Options } from 'prettier';
 import { format } from 'prettier';
 import options from '../.prettierrc.js';
 import type { LocaleDefinition, MetadataDefinition } from '../src/definitions';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 // Constants
 
@@ -284,8 +287,7 @@ async function main(): Promise<void> {
     const pathMetadata = resolve(pathModules, 'metadata.ts');
     let localeTitle = 'No title found';
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const metadata: MetadataDefinition = require(pathMetadata).default;
+      const metadata: MetadataDefinition = (await import(pathMetadata)).default;
       const { title } = metadata;
       if (!title) {
         throw new Error(
