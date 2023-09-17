@@ -5,7 +5,7 @@ import { allLocales } from '../src';
 describe.each(Object.keys(allLocales))('locale imports', (locale) => {
   it(`should be possible to directly require('@faker-js/faker/locale/${locale}')`, () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { faker } = require(`../dist/cjs/locale/${locale}`) as {
+    const { faker } = require(`../dist/locale/${locale}.cjs`) as {
       faker: Faker;
     };
 
@@ -17,7 +17,7 @@ describe.each(Object.keys(allLocales))('locale imports', (locale) => {
   });
 
   it(`should be possible to directly import('@faker-js/faker/locale/${locale}')`, async () => {
-    const { faker } = (await import(`../dist/esm/locale/${locale}`)) as {
+    const { faker } = (await import(`../dist/locale/${locale}`)) as {
       faker: Faker;
     };
 
