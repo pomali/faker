@@ -31,68 +31,64 @@ afterAll(() => {
   }
 });
 
-describe('verify JSDoc tags', () => {
-  const modules = loadProjectModules();
+const modules = await loadProjectModules();
 
-  function resolveDirToModule(moduleName: string): string {
-    return resolve(tempDir, moduleName);
-  }
+function resolveDirToModule(moduleName: string): string {
+  return resolve(tempDir, moduleName);
+}
 
-  function resolvePathToMethodFile(
-    moduleName: string,
-    methodName: string
-  ): string {
-    const dir = resolveDirToModule(moduleName);
-    return resolve(dir, `${methodName}.ts`);
-  }
+function resolvePathToMethodFile(
+  moduleName: string,
+  methodName: string
+): string {
+  const dir = resolveDirToModule(moduleName);
+  return resolve(dir, `${methodName}.ts`);
+}
 
-  const allowedReferences = new Set(
-    Object.values(modules).reduce<string[]>((acc, [module, methods]) => {
-      const moduleFieldName = extractModuleFieldName(module);
-      return [
-        ...acc,
-        ...Object.keys(methods).map(
-          (methodName) => `faker.${moduleFieldName}.${methodName}`
-        ),
-      ];
-    }, [])
-  );
-  const allowedLinks = new Set(
-    Object.values(modules).reduce<string[]>((acc, [module, methods]) => {
-      const moduleFieldName = extractModuleFieldName(module);
-      return [
-        ...acc,
-        `/api/${moduleFieldName}.html`,
-        ...Object.keys(methods).map(
-          (methodName) =>
-            `/api/${moduleFieldName}.html#${methodName.toLowerCase()}`
-        ),
-      ];
-    }, [])
-  );
+const allowedReferences = new Set(
+  Object.values(modules).reduce<string[]>((acc, [module, methods]) => {
+    const moduleFieldName = extractModuleFieldName(module);
+    return [
+      ...acc,
+      ...Object.keys(methods).map(
+        (methodName) => `faker.${moduleFieldName}.${methodName}`
+      ),
+    ];
+  }, [])
+);
+const allowedLinks = new Set(
+  Object.values(modules).reduce<string[]>((acc, [module, methods]) => {
+    const moduleFieldName = extractModuleFieldName(module);
+    return [
+      ...acc,
+      `/api/${moduleFieldName}.html`,
+      ...Object.keys(methods).map(
+        (methodName) =>
+          `/api/${moduleFieldName}.html#${methodName.toLowerCase()}`
+      ),
+    ];
+  }, [])
+);
 
-  function assertDescription(description: string, isHtml: boolean): void {
-    const linkRegexp = isHtml
-      ? /(href)="([^"]+)"/g
-      : /\[([^\]]+)\]\(([^)]+)\)/g;
-    const links = [...description.matchAll(linkRegexp)].map((m) => m[2]);
+function assertDescription(description: string, isHtml: boolean): void {
+  const linkRegexp = isHtml ? /(href)="([^"]+)"/g : /\[([^\]]+)\]\(([^)]+)\)/g;
+  const links = [...description.matchAll(linkRegexp)].map((m) => m[2]);
 
-    for (const link of links) {
-      if (!isHtml) {
-        expect(link).toMatch(/^https?:\/\//);
-        expect(link).toSatisfy(validator.isURL);
-      }
+  for (const link of links) {
+    if (!isHtml) {
+      expect(link).toMatch(/^https?:\/\//);
+      expect(link).toSatisfy(validator.isURL);
+    }
 
-      if (
-        isHtml ? link.startsWith('/api/') : link.includes('fakerjs.dev/api/')
-      ) {
-        expect(allowedLinks, `${link} to point to a valid target`).toContain(
-          link.replace(/.*fakerjs.dev\//, '/')
-        );
-      }
+    if (isHtml ? link.startsWith('/api/') : link.includes('fakerjs.dev/api/')) {
+      expect(allowedLinks, `${link} to point to a valid target`).toContain(
+        link.replace(/.*fakerjs.dev\//, '/')
+      );
     }
   }
+}
 
+describe('verify JSDoc tags', () => {
   describe.each(Object.entries(modules))(
     '%s',
     (moduleName, [module, methodsByName]) => {
