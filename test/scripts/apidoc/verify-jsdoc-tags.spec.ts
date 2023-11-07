@@ -20,18 +20,28 @@ import { loadProjectModules } from './utils';
 // - has working examples
 // - running these do not log anything, unless the method is deprecated
 
-beforeAll(initMarkdownRenderer);
-
 const tempDir = resolve(__dirname, 'temp');
-
-afterAll(() => {
-  // Remove temp folder
-  if (existsSync(tempDir)) {
-    rmSync(tempDir, { recursive: true });
-  }
-});
-
 const modules = await loadProjectModules();
+const allowedReferences = new Set(
+  Object.values(modules).flatMap(([module, methods]) => {
+    const moduleFieldName = extractModuleFieldName(module);
+    return Object.keys(methods).map(
+      (methodName) => `faker.${moduleFieldName}.${methodName}`
+    );
+  })
+);
+const allowedLinks = new Set(
+  Object.values(modules).flatMap(([module, methods]) => {
+    const moduleFieldName = extractModuleFieldName(module);
+    return [
+      `/api/${moduleFieldName}.html`,
+      ...Object.keys(methods).map(
+        (methodName) =>
+          `/api/${moduleFieldName}.html#${methodName.toLowerCase()}`
+      ),
+    ];
+  })
+);
 
 function resolveDirToModule(moduleName: string): string {
   return resolve(tempDir, moduleName);
@@ -44,31 +54,6 @@ function resolvePathToMethodFile(
   const dir = resolveDirToModule(moduleName);
   return resolve(dir, `${methodName}.ts`);
 }
-
-const allowedReferences = new Set(
-  Object.values(modules).reduce<string[]>((acc, [module, methods]) => {
-    const moduleFieldName = extractModuleFieldName(module);
-    return [
-      ...acc,
-      ...Object.keys(methods).map(
-        (methodName) => `faker.${moduleFieldName}.${methodName}`
-      ),
-    ];
-  }, [])
-);
-const allowedLinks = new Set(
-  Object.values(modules).reduce<string[]>((acc, [module, methods]) => {
-    const moduleFieldName = extractModuleFieldName(module);
-    return [
-      ...acc,
-      `/api/${moduleFieldName}.html`,
-      ...Object.keys(methods).map(
-        (methodName) =>
-          `/api/${moduleFieldName}.html#${methodName.toLowerCase()}`
-      ),
-    ];
-  }, [])
-);
 
 function assertDescription(description: string, isHtml: boolean): void {
   const linkRegexp = isHtml ? /(href)="([^"]+)"/g : /\[([^\]]+)\]\(([^)]+)\)/g;
@@ -87,6 +72,15 @@ function assertDescription(description: string, isHtml: boolean): void {
     }
   }
 }
+
+beforeAll(initMarkdownRenderer);
+
+afterAll(() => {
+  // Remove temp folder
+  if (existsSync(tempDir)) {
+    rmSync(tempDir, { recursive: true });
+  }
+});
 
 describe('verify JSDoc tags', () => {
   describe.each(Object.entries(modules))(
